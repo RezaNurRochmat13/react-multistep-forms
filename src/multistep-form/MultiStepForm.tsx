@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -22,16 +22,7 @@ const step3Schema = z.object({
 
 export default function MultiStepForm() {
   const [step, setStep] = useState(1);
-
-  // Initialize form with a single hook and conditional validation
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    getValues,
-    trigger,
-  } = useForm({
+  const { control, handleSubmit, formState: { errors }, setValue, getValues, trigger } = useForm({
     resolver: zodResolver(
       step === 1 ? step1Schema : step === 2 ? step2Schema : step3Schema
     ),
@@ -47,23 +38,27 @@ export default function MultiStepForm() {
     },
   });
 
-  // Handle form submission - capture all form values at the last step
-  const onSubmit = (data: any) => {
-    console.log("Form data submitted:", data);
-    // Optionally handle form submission (e.g., send to an API)
-  };
-
-  // Handle next/prev step transitions, keeping values intact
-  const goToNextStep = async () => {
+  // Persisting the form values across steps
+  const handleNext = async () => {
     const isValid = await trigger(); // Validate current step
     if (isValid) {
       setStep((prevStep) => prevStep + 1);
     }
   };
 
-  const goToPreviousStep = () => {
+  const handleBack = () => {
     setStep((prevStep) => prevStep - 1);
   };
+
+  const onSubmit = (data: any) => {
+    console.log("Form data submitted:", data);
+  };
+  useEffect(() => {
+    const formValues = getValues();
+    Object.keys(formValues).forEach((field) => {
+      setValue(field, formValues[field]); // Ensure values persist when changing steps
+    });
+  }, [step, getValues, setValue]);
 
   return (
     <div className="flex flex-col items-center p-6 max-w-lg mx-auto bg-gray-50 rounded-lg shadow-lg">
@@ -127,7 +122,7 @@ export default function MultiStepForm() {
             <div className="flex justify-between mt-4">
               <button
                 type="button"
-                onClick={goToNextStep}
+                onClick={handleNext}
                 className="py-2 px-6 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
                 Next
@@ -176,14 +171,14 @@ export default function MultiStepForm() {
             <div className="flex justify-between mt-4">
               <button
                 type="button"
-                onClick={goToPreviousStep}
+                onClick={handleBack}
                 className="py-2 px-6 bg-gray-400 text-white rounded-md hover:bg-gray-500"
               >
                 Back
               </button>
               <button
                 type="button"
-                onClick={goToNextStep}
+                onClick={handleNext}
                 className="py-2 px-6 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
                 Next
@@ -249,7 +244,7 @@ export default function MultiStepForm() {
             <div className="flex justify-between mt-4">
               <button
                 type="button"
-                onClick={goToPreviousStep}
+                onClick={handleBack}
                 className="py-2 px-6 bg-gray-400 text-white rounded-md hover:bg-gray-500"
               >
                 Back
