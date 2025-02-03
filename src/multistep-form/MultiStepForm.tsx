@@ -22,43 +22,56 @@ const step3Schema = z.object({
 
 export default function MultiStepForm() {
   const [step, setStep] = useState(1);
-  const { control, handleSubmit, formState: { errors }, setValue, getValues, trigger } = useForm({
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    age: "",
+    phone: "",
+    email: "",
+    seat: "",
+    food: "",
+    allergies: "",
+  });
+
+  const { control, handleSubmit, formState: { errors }, trigger, setValue } = useForm({
     resolver: zodResolver(
       step === 1 ? step1Schema : step === 2 ? step2Schema : step3Schema
     ),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      age: "",
-      phone: "",
-      email: "",
-      seat: "",
-      food: "",
-      allergies: "",
-    },
+    defaultValues: formData, // Default values will come from formData
   });
 
-  // Persisting the form values across steps
+  // Handle changes in form fields
+  const handleInputChange = (name, value) => {
+    setValue(name, value); // Update the form value immediately
+  };
+
   const handleNext = async () => {
     const isValid = await trigger(); // Validate current step
     if (isValid) {
-      setStep((prevStep) => prevStep + 1);
+      // Update formData with the current step's values
+      const currentStepData = {};
+      Object.keys(step === 1 ? step1Schema.shape : step === 2 ? step2Schema.shape : step3Schema.shape).forEach((key) => {
+        currentStepData[key] = control._formValues[key];
+      });
+      setFormData(prevData => ({ ...prevData, ...currentStepData }));
+      setStep(prevStep => prevStep + 1);
     }
   };
 
   const handleBack = () => {
-    setStep((prevStep) => prevStep - 1);
+    setStep(prevStep => prevStep - 1);
   };
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data) => {
     console.log("Form data submitted:", data);
   };
+
   useEffect(() => {
-    const formValues = getValues();
-    Object.keys(formValues).forEach((field) => {
-      setValue(field, formValues[field]); // Ensure values persist when changing steps
+    // Update form values when step changes
+    Object.keys(formData).forEach((key) => {
+      setValue(key, formData[key]); // Persist data across steps
     });
-  }, [step, getValues, setValue]);
+  }, [step, formData, setValue]);
 
   return (
     <div className="flex flex-col items-center p-6 max-w-lg mx-auto bg-gray-50 rounded-lg shadow-lg">
@@ -77,6 +90,7 @@ export default function MultiStepForm() {
                   <input
                     {...field}
                     className="p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    onChange={(e) => handleInputChange("firstName", e.target.value)} // Handle change
                   />
                 )}
               />
@@ -94,6 +108,7 @@ export default function MultiStepForm() {
                   <input
                     {...field}
                     className="p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    onChange={(e) => handleInputChange("lastName", e.target.value)} // Handle change
                   />
                 )}
               />
@@ -111,6 +126,7 @@ export default function MultiStepForm() {
                   <input
                     {...field}
                     className="p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    onChange={(e) => handleInputChange("age", e.target.value)} // Handle change
                   />
                 )}
               />
@@ -143,6 +159,7 @@ export default function MultiStepForm() {
                   <input
                     {...field}
                     className="p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    onChange={(e) => handleInputChange("phone", e.target.value)} // Handle change
                   />
                 )}
               />
@@ -160,6 +177,7 @@ export default function MultiStepForm() {
                   <input
                     {...field}
                     className="p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    onChange={(e) => handleInputChange("email", e.target.value)} // Handle change
                   />
                 )}
               />
@@ -199,6 +217,7 @@ export default function MultiStepForm() {
                   <input
                     {...field}
                     className="p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    onChange={(e) => handleInputChange("seat", e.target.value)} // Handle change
                   />
                 )}
               />
@@ -216,6 +235,7 @@ export default function MultiStepForm() {
                   <input
                     {...field}
                     className="p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    onChange={(e) => handleInputChange("food", e.target.value)} // Handle change
                   />
                 )}
               />
@@ -233,6 +253,7 @@ export default function MultiStepForm() {
                   <input
                     {...field}
                     className="p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    onChange={(e) => handleInputChange("allergies", e.target.value)} // Handle change
                   />
                 )}
               />
